@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-
-	
 )
 
 func main() {
@@ -18,9 +16,10 @@ func main() {
 
 	flag.Parse()
 
-	smell_the_packets()
+	err := smell_the_packets()
+	if err != nil {
+		panic(err)
+	}
 	
-
-
 
 }
