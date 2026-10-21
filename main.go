@@ -11,19 +11,19 @@ func main() {
 
 	// flags to implement(values are pointer lol)
 	net_inter := flag.String("list", "any", "To get list of network interfaces")
-	port := flag.String("port", "", "Sort by the port")
+	filter := flag.String("filter", "", "filter the packets you want")
 	pack_size := flag.Int("pack_size", 65535, "The size of packge upto you wanna search")
 
 	flag.Parse()
-	err := check_openlive_args(*net_inter)
 
-	
+	err := check_openlive_args(*net_inter)
 	if err != nil {
 		fmt.Printf("%v", err)
+		return
 	}
 
 
-	err = smell_the_packets(*net_inter, *port, *pack_size)
+	err = smell_the_packets(*net_inter, *filter, *pack_size)
 	if err != nil {
 		panic(err)
 	}
