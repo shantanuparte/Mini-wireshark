@@ -33,31 +33,51 @@ func smell_the_packets(net_inter, filter string, pack_size int) error {
 }
 
 func print_packet(pack gopacket.Packet) {
+	meta := pack.Metadata()
+	time_of_packet := meta.Timestamp.Format("15:04:05.000")
 
-	
+	src, dst := "unknown", "unknown"
+	protocol := "Others"
 
-	metadata := pack.Metadata()
+	if netLayer := pack.NetworkLayer(); netLayer != nil {
+		//osi model lol
+		flow := netLayer.NetworkFlow() //ip layer
+		src = flow.Src().String()
+		dst = flow.Dst().String()
 
-	fmt.Println(metadata)
+	}
+
+	if transport := pack.TransportLayer(); transport != nil {
+		protocol = transport.LayerType().String()
+
+		src += ":" + transport.TransportFlow().Src().String()
+		dst += ":" + transport.TransportFlow().Dst().String()
+
+	}
+
+	fmt.Printf("%-12s %-8s %-28s -> %s\n", time_of_packet, protocol, src, dst)
 
 }
 
 func check_openlive_args(arg string) error {
-	set := make(map[string]struct{})
 
-	keywords := []string{"eth0", "wlan0", "any"}
-
-	for _, v := range keywords {
-		set[v] = struct{}{}
-	}
-
-	_, exist := set[arg]
-
-	if exist == false {
-
-		return fmt.Errorf("Invalid intwork interface")
-	} else {
+	// any is linux specific
+	if arg == "any" {
 		return nil
 	}
+
+	devices, err := pcap.FindAllDevs()
+	if err != nil {
+		return fmt.Errorf("find interfaces %w", err)
+	}
+
+	for _, devices := range devices {
+		if devices.Name == arg {
+			return nil
+		
+		}
+	}
+
+	return fmt.Errorf("unknown network interfaces: %s", arg)
 
 }
