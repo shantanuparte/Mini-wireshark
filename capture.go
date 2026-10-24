@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	// "log"
 
 	"github.com/google/gopacket"
@@ -33,8 +34,6 @@ func smell_the_packets(net_inter, filter string, pack_size int) error {
 }
 
 func print_packet(pack gopacket.Packet) {
-	meta := pack.Metadata()
-	time_of_packet := meta.Timestamp.Format("15:04:05.000")
 
 	src, dst := "unknown", "unknown"
 	protocol := "Others"
@@ -55,7 +54,7 @@ func print_packet(pack gopacket.Packet) {
 
 	}
 
-	fmt.Printf("%-12s %-8s %-28s -> %s\n", time_of_packet, protocol, src, dst)
+	fmt.Printf("%-8s %-28s -> %s\n", protocol, src, dst)
 
 }
 
@@ -74,10 +73,9 @@ func check_openlive_args(arg string) error {
 	for _, devices := range devices {
 		if devices.Name == arg {
 			return nil
-		
+
 		}
 	}
 
 	return fmt.Errorf("unknown network interfaces: %s", arg)
-
 }
