@@ -13,13 +13,23 @@ import (
 
 var statistics = stat{
 	Protocol: make(map[string]int),
-	Port: make(map[string]int),
+	Port:     make(map[string]int),
 }
+	// duration := *dur
+	// if duration < 0 {
+	// 	start := time.Now()
 
-func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size int, log bool) error {
+	// }else{
+	// 	start := time.Now().Add(time.Second * time.Duration(duration))
+	// }
+
+
+
+func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size int, log bool, dis int) error {
 	// max size, true gets network into promiscuous mode-> reads every package which is also not to our mac address. any is linux specific
 	handle, err := pcap.OpenLive(net_inter, int32(pack_size), true, time.Millisecond*500)
-
+	var cur <- chan time.Time
+	
 	if err != nil {
 		return fmt.Errorf("open live: %w", err)
 	}
@@ -42,11 +52,19 @@ func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size 
 	}
 	const rowFmt = "%-8s %-28s -> %s\n"
 
+	if dis != -1 {
+		cur = time.After(time.Duration(dis)* time.Second)	
+	}
+
 	fmt.Printf(rowFmt, "PROTO", "SOURCE_IP:PORT", "DESTINATION_IP:PORT")
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType()) //decodes everything
 	for {
 		select {
 		case <-ctx.Done():
+			print_stat(&statistics)
+			return nil
+
+		case <-cur:
 			print_stat(&statistics)
 			return nil
 
@@ -59,12 +77,20 @@ func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size 
 				write_package(pack.Data(), *pack.Metadata())
 			}
 
-			statistics.Port[pack.TransportLayer().TransportFlow().Src().String()] += 1
-			statistics.Protocol[pack.NetworkLayer().NetworkFlow().Src().String()] += 1
+			if (pack.TransportLayer()) != nil {
+				statistics.Port[pack.TransportLayer().TransportFlow().Src().String()] += 1
+			}
+
+			if (pack.NetworkLayer()) != nil {
+
+				statistics.Protocol[pack.NetworkLayer().NetworkFlow().Src().String()] += 1
+			}
 
 			statistics.Bytes += len(pack.Data())
 			statistics.Total_pack += 1
 			print_packet(pack)
+
+		
 
 		}
 

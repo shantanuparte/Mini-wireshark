@@ -40,7 +40,9 @@ func upper3(m *map[string]int) {
 		return b.Value - a.Value
 	})
 
-	for i := 0; i < 3; i++ {
+	limit := min(3, len(list))// will panic if there arne't more than 3 
+
+	for i := 0; i < limit; i++ {
 		fmt.Printf("\n%v\t%v", list[i].Key, list[i].Value)
 	}
 
