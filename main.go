@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 )
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 
 	ctx, stop := graceful_term()
 	defer stop()
+	start := time.Now()
 	err = smell_the_packets(ctx, *net_inter, *filter, *pack_size, *log)
 	if err != nil {
 		panic(err)
@@ -50,5 +52,8 @@ func main() {
 			fmt.Printf("Error closing pcap file %v\n", err)
 		}
 	}
+
+	duration := time.Since(start)
+	fmt.Printf("\nThe Program ran for %v",duration)
 
 }
