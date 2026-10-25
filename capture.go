@@ -144,3 +144,50 @@ func check_openlive_args(arg string) error {
 
 	return fmt.Errorf("unknown network interfaces: %s", arg)
 }
+
+
+
+func jaw_function() error {
+	pcap_file := "capture.pcap"
+	handle, err := pcap.OpenOffline(pcap_file)
+	if err != nil {
+		return fmt.Errorf("open pcap: %w", err)
+	}
+	defer handle.Close()
+
+	fmt.Printf("%-26s %-8s %-6s %-6s %-28s -> %s\n",
+		"TIMESTAMP", "PROTO", "CAPLEN", "LEN", "SOURCE_IP:PORT", "DESTINATION_IP:PORT")
+
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	for pack := range packetSource.Packets() {
+		print_packet_with_meta(pack)
+	}
+	return nil
+}
+
+
+func print_packet_with_meta(pack gopacket.Packet) {
+	src, dst := "unknown", "unknown"
+	protocol := "Others"
+
+	if netLayer := pack.NetworkLayer(); netLayer != nil {
+		flow := netLayer.NetworkFlow()
+		src = flow.Src().String()
+		dst = flow.Dst().String()
+	}
+
+	if transport := pack.TransportLayer(); transport != nil {
+		protocol = transport.LayerType().String()
+		src += ":" + transport.TransportFlow().Src().String()
+		dst += ":" + transport.TransportFlow().Dst().String()
+	}
+
+	meta := pack.Metadata() // *gopacket.PacketMetadata (embeds CaptureInfo)
+
+	fmt.Printf("%-26s %-8s %-6d %-6d %-28s -> %s\n",
+		meta.Timestamp.Format("2006-01-02 15:04:05.000"),
+		protocol,
+		meta.CaptureLength, // bytes actually saved in the file
+		meta.Length,        // original size on the wire
+		src, dst)
+}

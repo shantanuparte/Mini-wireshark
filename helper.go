@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers" //decoding
+
 	"github.com/google/gopacket/pcapgo" //writing pcap packets
 )
 
@@ -58,8 +59,5 @@ func graceful_term() (context.Context, context.CancelFunc) {
 	return ctx, stop
 
 }
-
-
-
 
 

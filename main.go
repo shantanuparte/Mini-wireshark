@@ -14,6 +14,7 @@ func main() {
 	pack_size := flag.Int("pack_size", 65535, "The size of packge upto you wanna search")
 	log := flag.Bool("log", false, "Set the value to true if you want a log file")
 	dur := flag.Int("dur", -1, "How much time you wanna run the program")
+	jaw := flag.Bool("jaw", false, "To read the pcap file")
 
 	flag.Usage = func() {
 		fmt.Println("./wireshark has these Usage and filters")
@@ -39,9 +40,15 @@ func main() {
 	defer stop()
 
 	start := time.Now()
-	err = smell_the_packets(ctx, *net_inter, *filter, *pack_size, *log, *dur)
-	if err != nil {
-		panic(err)
+
+	if *jaw {
+		jaw_function()
+	} else {
+		err = smell_the_packets(ctx, *net_inter, *filter, *pack_size, *log, *dur)
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	if log_file != nil {
