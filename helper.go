@@ -17,17 +17,18 @@ import (
 var log_file *os.File
 var pcapWriter *pcapgo.Writer
 
-func log_file_inicilization(link_type layers.LinkType) {
+func log_file_inicilization(link_type layers.LinkType, snaplen uint32) {
 	var err error
-	log_file, err = os.OpenFile("capture.pcap", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0664) //.pcap is network packet file for storing packets
+	log_file, err = os.OpenFile("capture.pcap", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664) //.pcap is network packet file for storing packets
 	if err != nil {
 		log.Fatalf("Failed to initilize the pcap file %v", err)
 	}
 
 	pcapWriter = pcapgo.NewWriter(log_file)
 
-	err = pcapWriter.WriteFileHeader(65536, link_type)
+	err = pcapWriter.WriteFileHeader(snaplen, link_type)
 	if err != nil {
+		
 		log.Fatalf("Failed to wirte %v", err)
 	}
 
@@ -59,5 +60,7 @@ func graceful_term() (context.Context, context.CancelFunc) {
 	return ctx, stop
 
 }
+
+
 
 

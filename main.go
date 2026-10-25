@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"time"
 )
 
 func main() {
-	fmt.Println("WELCOME TO MINI WIRESHARK")
+
 	// flags to implement(values are pointer lol)
 	net_inter := flag.String("list", "any", "To get list of network interfaces")
 	filter := flag.String("filter", "", "filter the packets you want")
@@ -17,6 +18,7 @@ func main() {
 	jaw := flag.Bool("jaw", false, "To read the pcap file")
 
 	flag.Usage = func() {
+			fmt.Println("WELCOME TO MINI WIRESHARK")
 		fmt.Println("./wireshark has these Usage and filters")
 		fmt.Println("Usage-> Read the packets and store them in file:")
 		fmt.Println("1.filter -> can take arugmets for selecting protocol host ip etc. see SetBPFFilter arguemnts online for all")
@@ -30,23 +32,29 @@ func main() {
 	}
 	flag.Parse()
 
-	err := check_openlive_args(*net_inter)
-	if err != nil {
-		fmt.Printf("%v", err)
-		return
-	}
-
 	ctx, stop := graceful_term()
 	defer stop()
 
 	start := time.Now()
 
 	if *jaw {
-		jaw_function()
+		if err := jaw_function(); err != nil {
+			fmt.Println(err)
+			return
+		}
 	} else {
+		err := check_openlive_args(*net_inter)
+		if err != nil {
+			fmt.Printf("%v", err)
+			return
+		}
 		err = smell_the_packets(ctx, *net_inter, *filter, *pack_size, *log, *dur)
 		if err != nil {
-			panic(err)
+			if log_file != nil {
+				log_file.Close()
+			}
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
 		}
 
 	}
@@ -61,3 +69,6 @@ func main() {
 	fmt.Printf("\nThe Program ran for %v\n\n", duration)
 
 }
+
+
+

@@ -21,7 +21,7 @@ type entry struct {
 
 func print_stat(s *stat) {
 	fmt.Printf("\nTotal packets sniffed: %v", s.Total_pack)
-	fmt.Printf("\nTotal bytes captured: %v", (s.Bytes)/1024)
+	fmt.Printf("\nTotal KB captured: %v", s.Bytes/1024)
 	fmt.Printf("\nTop 3 Protocols")
 	upper3(&s.Protocol)
 	fmt.Printf("\nTop 3 Ports:")
@@ -40,7 +40,7 @@ func upper3(m *map[string]int) {
 		return b.Value - a.Value
 	})
 
-	limit := min(3, len(list))// will panic if there arne't more than 3 
+	limit := min(3, len(list)) // will panic if there arne't more than 3
 
 	for i := 0; i < limit; i++ {
 		fmt.Printf("\n%v\t%v", list[i].Key, list[i].Value)

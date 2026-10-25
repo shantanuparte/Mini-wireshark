@@ -15,30 +15,16 @@ var statistics = stat{
 	Protocol: make(map[string]int),
 	Port:     make(map[string]int),
 }
-	// duration := *dur
-	// if duration < 0 {
-	// 	start := time.Now()
-
-	// }else{
-	// 	start := time.Now().Add(time.Second * time.Duration(duration))
-	// }
-
-
 
 func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size int, log bool, dis int) error {
 	// max size, true gets network into promiscuous mode-> reads every package which is also not to our mac address. any is linux specific
 	handle, err := pcap.OpenLive(net_inter, int32(pack_size), true, time.Millisecond*500)
-	var cur <- chan time.Time
-	
+	var cur <-chan time.Time
+
 	if err != nil {
 		return fmt.Errorf("open live: %w", err)
 	}
 	defer handle.Close()
-
-	stop_capture := context.AfterFunc(ctx, func() {
-		handle.Close()
-	})
-	defer stop_capture()
 
 	if filter != "" {
 		if err := handle.SetBPFFilter(filter); err != nil {
@@ -48,12 +34,15 @@ func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size 
 	}
 
 	if log {
-		log_file_inicilization(handle.LinkType())
+		log_file_inicilization(handle.LinkType(), uint32(handle.SnapLen())) // cause flags refer default value to 65k but if user add specific one then it should match
 	}
 	const rowFmt = "%-8s %-28s -> %s\n"
 
-	if dis != -1 {
-		cur = time.After(time.Duration(dis)* time.Second)	
+	var timer *time.Timer
+	if dis >= 0 {
+		timer = time.NewTimer(time.Duration(dis) * time.Second)
+		defer timer.Stop()
+		cur = timer.C
 	}
 
 	fmt.Printf(rowFmt, "PROTO", "SOURCE_IP:PORT", "DESTINATION_IP:PORT")
@@ -77,20 +66,17 @@ func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size 
 				write_package(pack.Data(), *pack.Metadata())
 			}
 
-			if (pack.TransportLayer()) != nil {
-				statistics.Port[pack.TransportLayer().TransportFlow().Src().String()] += 1
+			if transport := pack.TransportLayer(); transport != nil {
+				statistics.Port[transport.TransportFlow().Src().String()]++
 			}
 
-			if (pack.NetworkLayer()) != nil {
-
-				statistics.Protocol[pack.NetworkLayer().NetworkFlow().Src().String()] += 1
+			if netLayer := pack.NetworkLayer(); netLayer != nil {
+				statistics.Protocol[netLayer.LayerType().String()]++
 			}
 
 			statistics.Bytes += len(pack.Data())
 			statistics.Total_pack += 1
 			print_packet(pack)
-
-		
 
 		}
 
@@ -145,8 +131,6 @@ func check_openlive_args(arg string) error {
 	return fmt.Errorf("unknown network interfaces: %s", arg)
 }
 
-
-
 func jaw_function() error {
 	pcap_file := "capture.pcap"
 	handle, err := pcap.OpenOffline(pcap_file)
@@ -164,7 +148,6 @@ func jaw_function() error {
 	}
 	return nil
 }
-
 
 func print_packet_with_meta(pack gopacket.Packet) {
 	src, dst := "unknown", "unknown"
