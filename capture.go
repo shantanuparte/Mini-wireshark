@@ -33,7 +33,9 @@ func smell_the_packets(ctx context.Context, net_inter, filter string, pack_size 
 	if log {
 		log_file_inicilization(handle.LinkType())
 	}
+	const rowFmt = "%-8s %-28s -> %s\n"
 
+	fmt.Printf(rowFmt, "PROTO", "SOURCE_IP:PORT", "DESTINATION_IP:PORT")
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType()) //decodes everything
 	for {
 		select {

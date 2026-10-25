@@ -14,8 +14,23 @@ func main() {
 	filter := flag.String("filter", "", "filter the packets you want")
 	pack_size := flag.Int("pack_size", 65535, "The size of packge upto you wanna search")
 	log := flag.Bool("log", false, "Set the value to true if you want a log file")
+	
 
 	flag.Parse()
+
+	flag.Usage = func ()  {
+		fmt.Println("Welcome to mini Wireshark")
+		fmt.Println("./wireshark has these Usage and filters")
+		fmt.Println("Usage-> Read the packets and store them in file:")
+		fmt.Println("1.filter -> can take arugmets for selecting protocol host ip etc. see SetBPFFilter arguemnts online for all")
+		fmt.Println("2.log -> bool value of you want a .pcap file with which has all the records (default flase)")
+		fmt.Println("3.time -> how to seocnds you wanna sniff packeges")
+		fmt.Println("4.list->pariticular network interface like 'eth0'")
+		fmt.Println("5.pack_size -> size of package you wanna search (default 65535)")
+		fmt.Println("Usage->Read .pcap file:")
+		fmt.Println("jaw -> the .pacp file output")
+
+	}
 
 	err := check_openlive_args(*net_inter)
 	if err != nil {
