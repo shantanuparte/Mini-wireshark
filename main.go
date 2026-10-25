@@ -13,7 +13,7 @@ func main() {
 	net_inter := flag.String("list", "any", "To get list of network interfaces")
 	filter := flag.String("filter", "", "filter the packets you want")
 	pack_size := flag.Int("pack_size", 65535, "The size of packge upto you wanna search")
-	// log := flag.Bool("log",false,"Set the value to true if you want a log file")
+	log := flag.Bool("log", false, "Set the value to true if you want a log file")
 
 	flag.Parse()
 
@@ -23,12 +23,12 @@ func main() {
 		return
 	}
 
-	
-
-
-	err = smell_the_packets(*net_inter, *filter, *pack_size)
+	err = smell_the_packets(*net_inter,*filter,*pack_size,*log)
 	if err != nil {
 		panic(err)
 	}
+
+
+	
 
 }
