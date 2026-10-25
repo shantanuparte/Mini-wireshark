@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -24,7 +23,7 @@ func log_file_inicilization(link_type layers.LinkType) {
 		log.Fatalf("Failed to initilize the pcap file %v", err)
 	}
 
-	pcapWriter := pcapgo.NewWriter(log_file)
+	pcapWriter = pcapgo.NewWriter(log_file)
 
 	err = pcapWriter.WriteFileHeader(65536, link_type)
 	if err != nil {
@@ -47,7 +46,7 @@ func write_package(pack_data []byte, metadata gopacket.PacketMetadata) {
 
 	err := pcapWriter.WritePacket(pack_info, pack_data)
 	if err != nil {
-		log.Printf("Error in writingot pcap file: %v", err)//it doesn't support %w why
+		log.Printf("Error in writingot pcap file: %v", err) //it doesn't support %w why
 	}
 }
 
@@ -56,14 +55,8 @@ func graceful_term() (context.Context, context.CancelFunc) {
 	//contex -> signal handling
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
-	defer stop()
-
-	fmt.Println("Application running")
-
-	<-ctx.Done()
-
-	fmt.Println("Shutdown signal recived")
-
 	return ctx, stop
 
 }
+
+

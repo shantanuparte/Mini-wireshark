@@ -23,12 +23,17 @@ func main() {
 		return
 	}
 
-	err = smell_the_packets(*net_inter,*filter,*pack_size,*log)
+	ctx, stop := graceful_term()
+	defer stop()
+	err = smell_the_packets(ctx, *net_inter, *filter, *pack_size, *log)
 	if err != nil {
 		panic(err)
 	}
 
-
-	
+	if log_file != nil {
+		if err := log_file.Close(); err != nil {
+			fmt.Printf("Error closing pcap file %v\n", err)
+		}
+	}
 
 }
